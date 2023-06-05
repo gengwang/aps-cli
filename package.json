@@ -1,0 +1,19 @@
+{
+  "name": "hello-cli",
+  "version": "1.0.0",
+  "description": "a hello-world cli app",
+  "main": "./bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Geng Wang",
+  "license": "ISC",
+  "bin": {
+    "hello": "./bin/index.js"
+  },
+  "dependencies": {
+    "boxen": "4.0",
+    "chalk": "2.4",
+    "figlet": "^1.6.0"
+  }
+}
