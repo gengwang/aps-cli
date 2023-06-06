@@ -1,7 +1,7 @@
 {
-  "name": "hello-cli",
+  "name": "aps-cli",
   "version": "1.0.0",
-  "description": "a hello-world cli app",
+  "description": "an APS cli utility",
   "main": "dist/index.js",
   "scripts": {
     "start": "npx ts-node src/index.ts",

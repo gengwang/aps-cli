@@ -1,3 +1,5 @@
+- To run: ```npm start```
+
 - To compile: ```npm run build```
 
 - To install the package globally: ```npm install -g . ```

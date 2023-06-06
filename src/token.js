@@ -108,7 +108,6 @@ router.get("/", function (req, res) {
     .then(function (tokenInfo) {
       //write token and refresh token to a file
       writeTokenFile(tokenInfo);
-      res.redirect("/");
 
       // test
       // TODO: https://github.com/autodesk-platform-services/aps-hubs-browser-nodejs/blob/develop/services/aps.js
@@ -125,6 +124,8 @@ router.get("/", function (req, res) {
         console.log("\n");
         console.table(hubs);
       })();
+
+      res.redirect("/granted");
     })
     .catch(function (err) {
       console.log(err);
@@ -132,7 +133,7 @@ router.get("/", function (req, res) {
     });
 });
 
-function startoAuth() {
+function startOAuth() {
   var autoRefresh = true;
   var forge3legged = new forgeSDK.AuthClientThreeLeggedV2(
     config.credentials.client_id,
@@ -155,5 +156,5 @@ function startoAuth() {
 
 module.exports = {
   router: router,
-  startoAuth: startoAuth,
+  startOAuth: startOAuth,
 };
