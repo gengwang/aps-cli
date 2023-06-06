@@ -1,11 +1,11 @@
 {
   "name": "aps-cli",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "an APS cli utility",
   "main": "dist/index.js",
   "scripts": {
     "start": "npx ts-node src/index.ts",
-    "build": "npx tsc",
+    "build": "npx tsc && npm install -g . && aps",
     "test": "npx tsc && node ./dist/index.js"
   },
   "author": "Geng Wang",

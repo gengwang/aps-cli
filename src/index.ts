@@ -1,28 +1,44 @@
-import dotenv from 'dotenv';
-dotenv.config();
+#! /usr/bin/env node
 
-// console.log(process.env.APS_AUTH_CALLBACK_URL);
-var express = require('express');
-var app = express();
-var server = require('http').Server(app);  
+import { Command } from "commander";
+import { displaySplashScreen } from "./actions/splash-screen";
+import listAllHubs  from './actions/dm';
 
-//get token route
-var tokenRoute = require('./token');
+const program = new Command();
 
-app.use(process.env.APS_AUTH_CALLBACK_PATH, tokenRoute.router);  
+program
+  .version("0.0.1")
+  .description("an APS cli utility")
+  .action(() => {
+    displaySplashScreen();
+    program.outputHelp();
+  });
 
-//set port
-app.set('port', process.env.APS_AUTH_CALLBACK_PORT || 3000);
+// Authentication. You don't normally need to run it manually because aps will run it when necessary.
+const auth = program
+  .command("auth")
+  .description(
+    "Three-legged OAuth"
+  );
 
-server.listen(app.get('port'), function() {
-    console.log('Server listening on port ' 
-        + server.address().port);
-});
+// Data Management
+const dm = program
+  .command('dm')
+  .description(
+    "List the items in your ACC Docs"
+  )
+  .option("-h, --hubs  [value]", "List all hubs")
+  .action(() => {
+    const options = dm.opts();
+    if (options.hubs) {
+        listAllHubs();
+      }
+  });
+// dm
+//   .command('hubs')
+//   .action(() => console.log('list all hubs'))
+// dm
+//   .command('projects')
+//   .action(() => console.log('list all projects'))
 
-app.get("/granted", (_:any, res: any) => {
-    res.send("✭ Access has been granted ✭");
-    process.exit(0);
-});
-
-//start oAuth process
-tokenRoute.startOAuth();
+program.parse(process.argv);
