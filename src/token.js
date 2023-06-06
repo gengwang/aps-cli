@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var fs = require("fs");
 var colors = require("colors");
+const { table } = require("console");
 
 //for pop out oAuth log in dialog
 var opn = require("opn");
@@ -18,8 +19,8 @@ fs.mkdir("jobs", function () {});
 //write the token to the file
 const tokenfile = "./jobs/token";
 
-//const refreshInterval = 30; // 30 minutes
-const refreshInterval = 0.3; // 18 seconds, just for demo
+const refreshInterval = 30; // 30 minutes
+// const refreshInterval = 0.3; // 18 seconds, just for demo
 
 function writeTokenFile(tokenInfo) {
   var refresh_token = tokenInfo.refresh_token;
@@ -108,6 +109,22 @@ router.get("/", function (req, res) {
       //write token and refresh token to a file
       writeTokenFile(tokenInfo);
       res.redirect("/");
+
+      // test
+      // TODO: https://github.com/autodesk-platform-services/aps-hubs-browser-nodejs/blob/develop/services/aps.js
+
+      (async () => {
+        var hubsApi = new forgeSDK.HubsApi();
+        const resp = await hubsApi.getHubs({}, forge3legged, tokenInfo);
+        // console.log("hubs", resp.body.data);
+        const hubs = resp.body?.data?.map((d) => ({
+          hub_name: d.attributes?.name,
+          hub_id: d.id,
+          region: d.attributes?.region,
+        }));
+        console.log("\n");
+        console.table(hubs);
+      })();
     })
     .catch(function (err) {
       console.log(err);
