@@ -4,20 +4,28 @@
   "description": "a hello-world cli app",
   "main": "dist/index.js",
   "scripts": {
+    "start": "npx ts-node src/index.ts",
     "build": "npx tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx tsc && node ./dist/index.js"
   },
   "author": "Geng Wang",
-  "email": "gwangdesign@yahoo.com",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bin": {
     "aps": "./dist/index.js"
   },
   "dependencies": {
+    "body-parser": "^1.20.2",
     "boxen": "4.0",
     "chalk": "2.4",
+    "cli-progress": "^3.12.0",
+    "colors": "^1.4.0",
     "commander": "^10.0.1",
-    "figlet": "^1.6.0"
+    "dotenv": "^16.1.4",
+    "express": "^4.18.2",
+    "figlet": "^1.6.0",
+    "forge-apis": "^0.9.6",
+    "opn": "^6.0.0",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "@types/node": "^20.2.5",
