@@ -8,11 +8,11 @@ const credentials = {
   client_secret: process.env.APS_CLIENT_SECRET || "<your client_secret>",
 };
 
-const scope: Scope[] = [
+const scopes: Scope[] = [
   "data:read",
   "data:write",
   "data:create",
   "data:search",
 ];
 
-export { callbackURL, credentials, scope };
+export { callbackURL, credentials, scopes as scope };

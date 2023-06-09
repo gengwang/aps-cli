@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { displaySplashScreen } from "./actions/splash-screen";
-import listAllHubs from "./actions/dm";
+import { listAllHubs } from "./actions/dm";
 import { auth as authenticate } from "./actions/auth";
 
 const program = new Command();

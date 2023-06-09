@@ -1,5 +1,3 @@
-// @ts-ignore: suppress implicit any errors
-
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -18,8 +16,9 @@ var cliProgress = require("cli-progress");
 
 import * as config from "../config";
 import forgeSDK, { AuthToken } from "forge-apis";
+import forgeAuthThreeLeggedClient from "./auth-client";
 
-const tokenfilePath = "./jobs/token";
+const tokenfilePath = process.env.TOKEN_PATH ||  "./job/token";
 
 function writeTokenFile(
   tokenInfo: AuthToken,
@@ -86,15 +85,7 @@ function refreshToken(tokenfilePath: string) {
 
     var thisCredentials = JSON.parse(data);
 
-    var forge3legged = new forgeSDK.AuthClientThreeLegged(
-      config.credentials.client_id,
-      config.credentials.client_secret,
-      config.callbackURL,
-      config.scope,
-      true
-    );
-
-    forge3legged
+    forgeAuthThreeLeggedClient
       .refreshToken(thisCredentials)
       .then(function (tokenInfo) {
         //write token and refresh token to a file
@@ -108,16 +99,9 @@ function refreshToken(tokenfilePath: string) {
 
 function startOAuth() {
   var autoRefresh = true;
-  var forge3legged = new forgeSDK.AuthClientThreeLegged(
-    config.credentials.client_id,
-    config.credentials.client_secret,
-    config.callbackURL,
-    config.scope,
-    autoRefresh
-  );
 
   try {
-    const url = forge3legged.generateAuthUrl("");
+    const url = forgeAuthThreeLeggedClient.generateAuthUrl("");
     opn(url, function (err: any) {
       if (err) throw err;
       console.log("The user closed the browser");
@@ -139,43 +123,14 @@ function authCallbackRouter() {
     var code = req.query.code;
     var autoRefresh = true;
     const baseUrl = req.baseUrl;
-    var forge3legged = new forgeSDK.AuthClientThreeLegged(
-      config.credentials.client_id,
-      config.credentials.client_secret,
-      config.callbackURL,
-      config.scope,
-      autoRefresh
-    );
 
-    forge3legged
+    forgeAuthThreeLeggedClient
       .getToken(code)
       .then(async function (tokenInfo) {
-        //write token and refresh token to a file
+        // write token and refresh token to a file
         writeTokenFile(tokenInfo, tokenfilePath);
-
-        // test
-        // TODO: https://github.com/autodesk-platform-services/aps-hubs-browser-nodejs/blob/develop/services/aps.js
-
-        async function getHubs() {
-          var hubsApi = new forgeSDK.HubsApi();
-          const resp = await hubsApi.getHubs({}, forge3legged, tokenInfo);
-          // console.log("hubs", resp.body.data);
-          const _hubs = resp.body?.data?.map(
-            (d: { attributes: { name: any; region: any }; id: any }) => ({
-              hub_name: d.attributes?.name,
-              hub_id: d.id,
-              region: d.attributes?.region,
-            })
-          );
-          return _hubs;
-        }
-
-        const hubs = await getHubs();
-        console.log("\n");
-        console.table(hubs);
-
+        // show the success screen in the browser
         res.redirect(baseUrl + "/granted");
-        //   res.redirect('../auth/callback/granted');
       })
       .catch(function (err: any) {
         console.log(err);
