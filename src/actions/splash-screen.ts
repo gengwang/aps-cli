@@ -26,7 +26,7 @@ export function displaySplashScreen() {
   console.log(msgBox);
 }
 
-module.exports = {
-  displaySplashScreen: displaySplashScreen,
-};
+// module.exports = {
+//   displaySplashScreen: displaySplashScreen,
+// };
   

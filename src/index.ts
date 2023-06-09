@@ -2,7 +2,8 @@
 
 import { Command } from "commander";
 import { displaySplashScreen } from "./actions/splash-screen";
-import listAllHubs  from './actions/dm';
+import listAllHubs from "./actions/dm";
+import { auth as authenticate } from "./actions/auth";
 
 const program = new Command();
 
@@ -17,22 +18,21 @@ program
 // Authentication. You don't normally need to run it manually because aps will run it when necessary.
 const auth = program
   .command("auth")
-  .description(
-    "Three-legged OAuth"
-  );
+  .description("Three-legged OAuth")
+  .action(() => {
+    authenticate();
+  });
 
 // Data Management
 const dm = program
-  .command('dm')
-  .description(
-    "List the items in your ACC Docs"
-  )
+  .command("dm")
+  .description("List the items in your ACC Docs")
   .option("-h, --hubs  [value]", "List all hubs")
   .action(() => {
     const options = dm.opts();
     if (options.hubs) {
-        listAllHubs();
-      }
+      listAllHubs();
+    }
   });
 // dm
 //   .command('hubs')
