@@ -15,9 +15,7 @@ async function getAccessToken() {
 
 // TODO: https://github.com/autodesk-platform-services/aps-hubs-browser-nodejs/blob/develop/services/aps.js
 async function getHubs() {
-  var hubsApi = new forgeSDK.HubsApi();
-  const tokenInfo = await getAccessToken();
-  const resp = await hubsApi.getHubs({}, forgeAuthThreeLeggedClient, tokenInfo);
+  const resp = await new forgeSDK.HubsApi().getHubs({}, forgeAuthThreeLeggedClient, await getAccessToken());
   const _hubs = resp.body?.data?.map(
     (d: { attributes: { name: any; region: any }; id: any }) => ({
       hub_name: d.attributes?.name,
@@ -29,7 +27,7 @@ async function getHubs() {
 }
 
 // list all the hubs for the user
-async function listAllHubs() {
+async function listHubs() {
     try {
       // const tableContent = [
       //   {
@@ -55,7 +53,7 @@ async function listAllHubs() {
   }
 
   export {
-    listAllHubs,
+    listHubs,
   };
 
   

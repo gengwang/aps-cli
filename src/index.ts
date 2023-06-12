@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { displaySplashScreen } from "./actions/splash-screen";
-import { listAllHubs } from "./actions/dm";
+import { listHubs } from "./actions/dm";
 import { auth as authenticate } from "./actions/auth";
 
 const program = new Command();
@@ -31,7 +31,7 @@ const dm = program
   .action(() => {
     const options = dm.opts();
     if (options.hubs) {
-      listAllHubs();
+      listHubs();
     }
   });
 // dm

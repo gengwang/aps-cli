@@ -1,22 +1,18 @@
-import { table } from "console";
-import { errorMonitor } from "stream";
-
-// console.log(figlet.textSync("APS"));
-
-const figlet = require("figlet");
-const chalk = require("chalk");
-const boxen = require("boxen");
+import figlet from 'figlet';
+import chalk from "chalk";
+import boxen, { BorderStyle } from "boxen";
 
 export function displaySplashScreen() {
   const greeting =
-    chalk.white(`🚀 Explore & 🔬 discover with`) +
+    // chalk.white(`🚀 Explore & 🔬 discover with`) +
+    chalk.white(`🔨 Make anything 🗿`) +
     "\n" +
-    figlet.textSync("APS", "graffiti");
+    figlet.textSync("APS", "Rectangles");
 
   const boxenOptions = {
     padding: 1,
     margin: 1,
-    borderStyle: "classic",
+    borderStyle: BorderStyle.Classic,
     borderColor: "#5D3FD3",
     backgroundColor: "#5D3FD3",
   };
@@ -25,8 +21,4 @@ export function displaySplashScreen() {
 
   console.log(msgBox);
 }
-
-// module.exports = {
-//   displaySplashScreen: displaySplashScreen,
-// };
-  
+ 
