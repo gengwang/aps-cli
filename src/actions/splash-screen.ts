@@ -1,6 +1,7 @@
 import figlet from 'figlet';
 import chalk from "chalk";
 import boxen, { BorderStyle } from "boxen";
+import { getUserProfile } from './dm';
 
 export function displaySplashScreen() {
   const greeting =
@@ -21,4 +22,5 @@ export function displaySplashScreen() {
 
   console.log(msgBox);
 }
+
  

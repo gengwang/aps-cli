@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { displaySplashScreen } from "./actions/splash-screen";
-import { listHubs } from "./actions/dm";
+import { listHubs, listItemsWithPrompt, getUserProfile } from "./actions/dm";
 import { auth as authenticate } from "./actions/auth";
 
 const program = new Command();
@@ -27,9 +27,22 @@ const auth = program
 const dm = program
   .command("dm")
   .description("List the items in your ACC Docs")
+  .option("-i", "List items at ACC in the interactive mode")
   .option("-h, --hubs  [value]", "List all hubs")
-  .action(() => {
+  .action(async () => {
+    
     const options = dm.opts();
+
+    if(Object.keys(options).length == 0) {
+      dm.outputHelp();
+      // TODO: I think we'll force user to pick -a if they want all items.
+      return;
+    }
+
+    if(options.i) {
+      listItemsWithPrompt();
+    }
+
     if (options.hubs) {
       listHubs();
     }

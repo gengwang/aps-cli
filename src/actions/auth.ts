@@ -147,7 +147,9 @@ export function auth() {
   app.use(process.env.APS_AUTH_CALLBACK_PATH, router);
 
   server.listen(app.get("port"), function () {
-    console.log("Server listening on port " + server.address().port);
+    // console.log("Server listening on port " + server.address().port);
+    console.log("Please log in to 👷 Autodesk Construction Cloud");
+    
   });
 
   fs.mkdir("jobs", function () {});
