@@ -1,15 +1,11 @@
 // Data Management APIs
-import { Console, error, table } from "console";
+
 import 'dotenv/config';
 import * as fs from 'fs';
 import { AuthToken, FoldersApi, HubsApi, ProjectsApi, UserProfileApi } from "forge-apis";
 import forgeAuthThreeLeggedClient from "./auth-client";
 import inquirer, { Answers } from 'inquirer';
-// var Table = require('cli-table');
-import Table from 'cli-table';
-
-import exp from "constants";
-// const inquirer = require('inquirer');
+import Table from 'cli-table3';
 
 ////////////////////////////////////////////////////////////////////////
 // A "Content" can be any of the following: hubs/projects/folders/items (file, etc.)
@@ -134,7 +130,7 @@ async function getProjectsByHub(route: Route): Promise<Project[] | undefined> {
           route: newRoute,
         };
       }
-    );
+    );``
   } catch (e) {
     console.error(e);
   }
@@ -152,7 +148,6 @@ async function getProjectContents (route: Route): Promise<Content[] | undefined>
   const folderId = route.length >= 3 ? route[route.length - 1].id : undefined;
   const token = await getAccessToken();
   var resp;
-  // if (folderId === undefined || folderId === 'undefined') { // template literals will convert undefined to 'undefined'
   if (folderId === undefined) { // template literals will convert undefined to 'undefined'
       resp = await new ProjectsApi().getProjectTopFolders(hubId, projectId, forgeAuthThreeLeggedClient,
         token);
@@ -194,9 +189,21 @@ async function getProjectContents (route: Route): Promise<Content[] | undefined>
 
 // Interactive mode
 async function promptContents(route: Route = []) {
-  const types = ["hub", "project", "folder", "item"];
+  // const types = ["hub", "project", "folder", "item"];
+  const itemTypes = [
+    { name: "hub", icon: "🌎" },
+    { name: "project", icon: "🏙 " },
+    { name: "folder", icon: "📂" },
+    { name: "item", icon: "🗒 " },
+  ];
   const index = Math.min(route.length, 2);
-  const typeToQuery = types[index];
+  const typeToQuery = itemTypes[index].name;
+  function iconFromResp (typeInPlural: string = "") {
+    if(typeInPlural === undefined || typeInPlural.length === 0) return "";
+    const type = typeInPlural.slice(0, -1);
+    const icon = itemTypes.filter(d=>d.name === type)?.at(0)?.icon || "";
+    return icon;
+  };
   var contents;
   switch(typeToQuery) {
     case "hub":
@@ -206,13 +213,8 @@ async function promptContents(route: Route = []) {
       contents = await getProjectsByHub(route);
       break;
     case "folder":
-      // console.log("You've got a folder"); //TODO
       contents = await getProjectContents(route);
       break;
-    // case "item":
-    //   console.log("You've got a item"); //TODO
-    //   contents = await getProjectContents(route);
-    //   break;
     default:
       break;
   }
@@ -222,7 +224,7 @@ async function promptContents(route: Route = []) {
       type: "list",
       name: "content",
       message: `Select ${typeToQuery}:`, // BUG: an item
-      choices: contents?.map(d => ({ name: d.name, value: d })),
+      choices: contents?.map(d => ({ name: `${iconFromResp(d.type)} ${d.name}`, value: d })),
     }
   ];
 
@@ -243,20 +245,24 @@ async function promptContents(route: Route = []) {
 function listContents(content: any) {
   // for an item
   var table = new Table({
-    // head: ['Property', 'Value']
-  // , colWidths: [100, 200]
-});
+    chars: { // remove inner borders
+      'top': '-', 'top-mid': '', 'top-left': '', 'top-right': '',
+      'bottom': '-', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
+      'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '',
+      'right': '', 'right-mid': '',
+      'middle': ' ' // Use a space character for the horizontal lines
+    },
+  });
 
-// table is an Array, so you can `push`, `unshift`, `splice` and friends
 table.push(
-  {'Name': content.name}
-, {'Type': content.extensionType}
-, {'Link': content.url}
-, {'Hub': content.route[0].name}
-, {'Project': content.route[1].name}
-, {'Hub Id': content.route[0].id}
-, {'Project Id': content.route[1].id}
-, {'Id': content.id}
+  {'\x1b[32mName\x1b[0m': content.name}
+, {'\x1b[32mType\x1b[0m': content.extensionType}
+, {'\x1b[32mLink\x1b[0m': content.url}
+, {'\x1b[32mHub\x1b[0m': content.route[0].name}
+, {'\x1b[32mProject\x1b[0m': content.route[1].name}
+, {'\x1b[32mHub Id\x1b[0m': content.route[0].id}
+, {'\x1b[32mProject Id\x1b[0m': content.route[1].id}
+, {'\x1b[32mId\x1b[0m': content.id}
 );
   // const contentForPrint = {
   //   Name: content.name,
