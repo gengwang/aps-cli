@@ -2,15 +2,23 @@
 
 import 'dotenv/config';
 import * as fs from 'fs';
-import { AuthToken, FoldersApi, HubsApi, ProjectsApi, UserProfileApi } from "forge-apis";
+import { FoldersApi, HubsApi, ProjectsApi, UserProfileApi } from "forge-apis";
 import forgeAuthThreeLeggedClient from "./auth-client";
+import { getAccessToken } from "../util/util";
+import { getExchangeInfoFromUrn } from '../util/dm-service';
 import inquirer, { Answers } from 'inquirer';
 import Table from 'cli-table3';
 
 ////////////////////////////////////////////////////////////////////////
+// TOD: validate each result is correct
+// TODO: Rename id to urn
+// TODO: Get id from urn
+// TODO: Allow escape/return so that one can get to a folder or a project
+// TODO: Where should one store their client id? Or is it a one time deal?
+
 // A "Content" can be any of the following: hubs/projects/folders/items (file, etc.)
 export interface Content {
-  id: string,
+  urn: string,
   name?: string,
   type?: string, // e.g., "projects", etc., directly coming from the DM API
   url?: string,
@@ -27,17 +35,6 @@ export interface Project extends Content {
 
 
 ////////////////////////////////////////////////////////////////////////
-
-
-async function getAccessToken() {
-  const tokenfilePath = process.env.TOKEN_PATH;
-  // TODO: Read from config.
-  // TODO: auto refresh token: @See:
-  // https://github.com/gengwang/aps-bootcamp-2023/blob/dashboard2/services/aps.js
-  const token = await fs.promises.readFile('./jobs/token', 'utf8');
-  const authToken: AuthToken = JSON.parse(token);
-  return authToken;
-}
 
 async function getUserProfile() {
   try {
@@ -80,16 +77,17 @@ async function getHubs():  Promise<Hub[] | undefined>{
     
     return resp.body?.data?.map(
       (d: {
+        id: any;
         type: any;
-        links: any; id: any; attributes: { name: any; region: any } 
+        links: any; urn: any; attributes: { name: any; region: any } 
 }) => {
-        const id = d.id;
+        const urn = d.id;
         const name = d.attributes?.name;
-        const url = _hubUrlFromId(id);
+        const url = _hubUrlFromId(urn);
         
-        const newRoute: Route = [{ id: id, name: name, url: url }];
+        const newRoute: Route = [{ urn: urn, name: name, url: url }];
         return {
-          id: id,
+          urn: urn,
           name: name,
           type: d.type,
           region: d.attributes?.region,
@@ -106,7 +104,7 @@ async function getHubs():  Promise<Hub[] | undefined>{
 // I don't have access to Forge Data, and I don't get the normal folders
 async function getProjectsByHub(route: Route): Promise<Project[] | undefined> {
   try {
-    const { id: hubId } = route[0];
+    const { urn: hubId } = route[0];
     const resp = await new ProjectsApi().getHubProjects(
       hubId,
       {filterId: undefined, filterExtensionType: undefined},
@@ -118,12 +116,12 @@ async function getProjectsByHub(route: Route): Promise<Project[] | undefined> {
       (d: {
         type: any; links: any; id: any; attributes: { name: any } 
 }) => {
-        const id = d.id;
+        const urn = d.id;
         const name = d.attributes?.name;
         const url = d.links?.webView?.href;
-        const newRoute = [...route, { id: id, name: name, url: url }];
+        const newRoute = [...route, { urn: urn, name: name, url: url }];
         return {
-          id: id,
+          urn: urn,
           type: d.type,
           name: name,
           url: url,
@@ -142,10 +140,10 @@ async function getProjectsByHub(route: Route): Promise<Project[] | undefined> {
 async function getProjectContents (route: Route): Promise<Content[] | undefined> {
   // console.log("route", route);
   
-  const hubId = route[0].id;
-  const projectId = route[1].id;
+  const hubId = route[0].urn;
+  const projectId = route[1].urn;
   // const { id: folderId } = route[2] || {id: undefined};
-  const folderId = route.length >= 3 ? route[route.length - 1].id : undefined;
+  const folderId = route.length >= 3 ? route[route.length - 1].urn : undefined;
   const token = await getAccessToken();
   var resp;
   if (folderId === undefined) { // template literals will convert undefined to 'undefined'
@@ -156,7 +154,8 @@ async function getProjectContents (route: Route): Promise<Content[] | undefined>
   }
 
   const _items = resp.body?.data?.map((d: {
-    type: any; id: any; attributes: {
+    id: any;
+    type: any; urn: any; attributes: {
       lastModifiedUserName: any;
       hidden: any;
       createTime: any;
@@ -164,12 +163,12 @@ async function getProjectContents (route: Route): Promise<Content[] | undefined>
       extension: any; displayName: any; name: any; 
 }; links: { webView: { href: any; }; }; 
 })=>{
-    const id = d.id;
+    const urn = d.id;
     const name = d.attributes?.displayName? d.attributes?.displayName : d.attributes?.name;
     const url = d.links?.webView?.href;
-    const newRoute = [...route, {id: id, name: name, url: url}];
+    const newRoute = [...route, {urn: urn, name: name, url: url}];
     return {
-      id: id,
+      urn: urn,
       // parent: parentId,
       name: name,
       url: url,
@@ -236,6 +235,16 @@ async function promptContents(route: Route = []) {
   // console.log("you selected:", selected);
 
   if(selectedType === "items") {
+    // Get the id from the urn
+    const urn = selectedContent?.urn;
+    if(selectedContent.extensionType === "items:autodesk.bim360:FDX") {
+      const exchangeInfo = await getExchangeInfoFromUrn(urn);
+      // console.log("id::::", exchangeInfo.id);
+      selectedContent.id = exchangeInfo.exchangeId;
+      selectedContent.version = exchangeInfo.versionNumber;
+      selectedContent.collectionId = exchangeInfo.collectionId;
+    }
+
     listContents(selectedContent);
   } else {
     promptContents(routeToContent);
@@ -260,10 +269,18 @@ table.push(
 , {'\x1b[32mLink\x1b[0m': content.url}
 , {'\x1b[32mHub\x1b[0m': content.route[0].name}
 , {'\x1b[32mProject\x1b[0m': content.route[1].name}
-, {'\x1b[32mHub Id\x1b[0m': content.route[0].id}
-, {'\x1b[32mProject Id\x1b[0m': content.route[1].id}
-, {'\x1b[32mId\x1b[0m': content.id}
+, {'\x1b[32mHub Urn\x1b[0m': content.route[0].urn}
+, {'\x1b[32mProject Urn\x1b[0m': content.route[1].urn}
+, {'\x1b[32mItem Urn\x1b[0m': content.urn}
 );
+
+if(content.extensionType === "items:autodesk.bim360:FDX") {
+  table.push(
+      {'\x1b[32mItem Id\x1b[0m': content.id}
+    , {'\x1b[32mLatest Version\x1b[0m': content.version}
+    , {'\x1b[32mCollection Id\x1b[0m': content.collectionId}
+  )
+}
   // const contentForPrint = {
   //   Name: content.name,
   //   Type: content.extensionType,
@@ -272,13 +289,13 @@ table.push(
   // console.log('-------------------------------------------------------');
   // console.log(`Name: ${content.name}`);
   // console.log(`Type: ${content.extensionType}`);
-  // console.log(`ID: ${content.id}`);
+  // console.log(`ID: ${content.urn}`);
   // console.log(`Link: ${content.url}`);
   // console.log('-------------------------------------------------------');
   // console.log(`Hub: ${content.route[0].name}`);
-  // console.log(`Hub ID: ${content.route[0].id}`);
+  // console.log(`Hub ID: ${content.route[0].urn}`);
   // console.log(`Project: ${content.route[1].name}`);
-  // console.log(`Project ID: ${content.route[1].id}`);
+  // console.log(`Project ID: ${content.route[1].urn}`);
   // TODO: Add folders or breadcrumbs
 
   // console.table(contentForPrint);
@@ -289,7 +306,7 @@ table.push(
 async function listHubs() {
     try {
       const hubs = await getHubs();
-      console.table(hubs, ["name", "id", "region"]);
+      console.table(hubs, ["name", "urn", "region"]);
 
     } catch (e) {
       console.error("Error occurred while reading hubs:", e);
