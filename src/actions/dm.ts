@@ -264,41 +264,37 @@ function listContents(content: any) {
   });
 
 table.push(
-  {'\x1b[32mName\x1b[0m': content.name}
-, {'\x1b[32mType\x1b[0m': content.extensionType}
-, {'\x1b[32mLink\x1b[0m': content.url}
-, {'\x1b[32mHub\x1b[0m': content.route[0].name}
-, {'\x1b[32mProject\x1b[0m': content.route[1].name}
-, {'\x1b[32mHub Urn\x1b[0m': content.route[0].urn}
-, {'\x1b[32mProject Urn\x1b[0m': content.route[1].urn}
-, {'\x1b[32mItem Urn\x1b[0m': content.urn}
+  {['\x1b[32m' + 'Name' + '\x1b[0m']: content.name}
+, {['\x1b[32m' + 'Type' + '\x1b[0m']: content.extensionType}
+, {['\x1b[32m' + 'Link' + '\x1b[0m']: content.url}
+, {['\x1b[32m' + 'Hub' + '\x1b[0m']: content.route[0].name}
+, {['\x1b[32m' + 'Project' + '\x1b[0m']: content.route[1].name}
+, {['\x1b[32m' + 'Hub urn' + '\x1b[0m']: content.route[0].urn}
+, {['\x1b[32m' + 'Project urn' + '\x1b[0m']: content.route[1].urn}
+, {['\x1b[32m' + 'Item urn' + '\x1b[0m']: content.urn}
 );
+
+if(content.route.length >= 3) {
+  table.push(
+    {['\x1b[32m' + 'Root folder urn' + '\x1b[0m']: content.route[2].urn}
+  )
+}
+
+if(content.route.length >= 5) {
+  let pr = content.route.length - 2;
+  table.push(
+    {['\x1b[32m' + 'Parent folder' + 'urn\x1b[0m']: content.route[pr].urn}
+  )
+}
 
 if(content.extensionType === "items:autodesk.bim360:FDX") {
   table.push(
-      {'\x1b[32mItem Id\x1b[0m': content.id}
-    , {'\x1b[32mLatest Version\x1b[0m': content.version}
-    , {'\x1b[32mCollection Id\x1b[0m': content.collectionId}
+      {['\x1b[32m' + 'Item Id' + '\x1b[0m']: content.id}
+    , {['\x1b[32m' + 'Latest Version' + '\x1b[0m']: content.version}
+    , {['\x1b[32m' + 'Collection Id' + '\x1b[0m']: content.collectionId}
   )
 }
-  // const contentForPrint = {
-  //   Name: content.name,
-  //   Type: content.extensionType,
-  // }
-  // console.log();
-  // console.log('-------------------------------------------------------');
-  // console.log(`Name: ${content.name}`);
-  // console.log(`Type: ${content.extensionType}`);
-  // console.log(`ID: ${content.urn}`);
-  // console.log(`Link: ${content.url}`);
-  // console.log('-------------------------------------------------------');
-  // console.log(`Hub: ${content.route[0].name}`);
-  // console.log(`Hub ID: ${content.route[0].urn}`);
-  // console.log(`Project: ${content.route[1].name}`);
-  // console.log(`Project ID: ${content.route[1].urn}`);
-  // TODO: Add folders or breadcrumbs
 
-  // console.table(contentForPrint);
   console.log(table.toString());
 }
 
