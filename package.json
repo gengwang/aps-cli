@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "npx ts-node src/index.ts",
-    "build": "npx tsc && npm install -g . && aps",
+    "build": "npx tsc --diagnostics && npm install -g . && aps || echo 'Build failed!' >&2",
     "test": "npx tsc && node ./dist/index.js"
   },
   "author": "Geng Wang",
@@ -18,17 +18,18 @@
     "boxen": "4.0",
     "chalk": "2.4",
     "cli-progress": "^3.12.0",
-    "cli-table3": "^0.6.3",
+    "cli-table3": "^0.6.5",
     "colors": "^1.4.0",
     "commander": "^10.0.1",
     "console": "^0.7.2",
     "dotenv": "^16.1.4",
     "express": "^4.18.2",
     "figlet": "^1.6.0",
-    "forge-apis": "^0.9.6",
+    "forge-apis": "^0.9.10",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
-    "inquirer": "^8.2.5",
+    "inquirer": "^8.2.6",
+    "inquirer-autocomplete-prompt": "^2.0.1",
     "opn": "^6.0.0",
     "request": "^2.88.2"
   },
@@ -37,7 +38,8 @@
     "@types/cli-progress": "^3.11.0",
     "@types/figlet": "^1.5.6",
     "@types/forge-apis": "^0.9.0",
-    "@types/inquirer": "^9.0.3",
+    "@types/inquirer": "^9.0.7",
+    "@types/inquirer-autocomplete-prompt": "^3.0.3",
     "@types/node": "^20.2.5",
     "typescript": "^5.1.3"
   }

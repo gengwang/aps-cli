@@ -1,19 +1,29 @@
 // Data Management APIs
 
 import 'dotenv/config';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import { FoldersApi, HubsApi, ProjectsApi, UserProfileApi } from "forge-apis";
 import forgeAuthThreeLeggedClient from "./auth-client";
 import { getAccessToken } from "../util/util";
 import { getExchangeInfoFromUrn } from '../util/dm-service';
-import inquirer, { Answers } from 'inquirer';
+// import inquirer, { Answers } from 'inquirer';
+import inquirer from 'inquirer';
+import inquirerAutocompletePrompt from 'inquirer-autocomplete-prompt';
 import Table from 'cli-table3';
 
 ////////////////////////////////////////////////////////////////////////
-// TOD: validate each result is correct
+// Register the autocomplete prompt
+inquirer.registerPrompt('autocomplete', inquirerAutocompletePrompt);
+////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
+// TODO: validate each output is correct
+////////////////////////////////////////////////////////////////////////
+// TODO: Be able to run the command from anywhere, not just from aps-cli directory
 // TODO: Rename id to urn
 // TODO: Get id from urn
 // TODO: Allow escape/return so that one can get to a folder or a project
+// TODO: Display path in breadcrumbs style: "Project Files > Geng > FDX >"
 // TODO: Where should one store their client id? Or is it a one time deal?
 
 // A "Content" can be any of the following: hubs/projects/folders/items (file, etc.)
@@ -33,7 +43,6 @@ export interface Hub extends Content{
 export interface Project extends Content {
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 
 async function getUserProfile() {
@@ -49,7 +58,7 @@ async function getUserProfile() {
       userName: user?.userName,
       profileImages: user?.profileImages,
     }
-    return resp.body;
+    // return resp.body;
   } catch (e) {
     console.error(e);
   }
@@ -203,7 +212,7 @@ async function promptContents(route: Route = []) {
     const icon = itemTypes.filter(d=>d.name === type)?.at(0)?.icon || "";
     return icon;
   };
-  var contents;
+  var contents: Hub[] | Project[] | Content[] | undefined;
   switch(typeToQuery) {
     case "hub":
       contents = await getHubs();
@@ -218,21 +227,32 @@ async function promptContents(route: Route = []) {
       break;
   }
 
-  const contentList: Answers = [
+  const terminalHeight = process.stdout.rows - 2; // Adjust for header/footer
+
+  const contentList: any[] = [
     {
-      type: "list",
+      type: "autocomplete",
       name: "content",
-      message: `Select ${typeToQuery}:`, // BUG: an item
-      choices: contents?.map(d => ({ name: `${iconFromResp(d.type)} ${d.name}`, value: d })),
+      message: `Select ${typeToQuery}:`,
+      pageSize: terminalHeight,
+      source: (answersSoFar: any, input: string | undefined) => {
+        input = input || '';
+        return new Promise((resolve) => {
+          const filteredContents = contents?.filter(d => `${iconFromResp(d.type)} ${d.name}`.toLowerCase().includes(input!.toLowerCase()))
+            .map(d => ({ name: `${iconFromResp(d.type)} ${d.name}`, value: d }));
+          resolve(filteredContents);
+        });
+      }
     }
   ];
 
-  const selected: Answers = await inquirer.prompt(contentList);
+  const selected: any = await inquirer.prompt(contentList);
   const selectedContent = selected.content;
   const selectedType: string = selectedContent?.type;
   const routeToContent: Route = selectedContent?.route;
 
-  // console.log("you selected:", selected);
+  // DEBUG:
+  // console.log('Selected content:', selected.content);
 
   if(selectedType === "items") {
     // Get the id from the urn
@@ -254,12 +274,13 @@ async function promptContents(route: Route = []) {
 function listContents(content: any) {
   // for an item
   var table = new Table({
+    colAligns: ["right", "left"],
     chars: { // remove inner borders
       'top': '-', 'top-mid': '', 'top-left': '', 'top-right': '',
       'bottom': '-', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
       'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '',
       'right': '', 'right-mid': '',
-      'middle': ' ' // Use a space character for the horizontal lines
+      // 'middle': ' ' // Use a space character for the horizontal lines
     },
   });
 
@@ -294,7 +315,7 @@ if(content.extensionType === "items:autodesk.bim360:FDX") {
     , {['\x1b[32m' + 'Collection Id' + '\x1b[0m']: content.collectionId}
   )
 }
-
+  // DO NOT remove: print out contents
   console.log(table.toString());
 }
 
